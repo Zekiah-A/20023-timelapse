@@ -47,7 +47,9 @@ const stats:Stats = {
         top: []
     },
     time: {
-        totalSeconds: 0
+        totalSeconds: 0,
+        topRange: 0,
+        top: []
     }
 }
 
@@ -127,6 +129,17 @@ const placeChatStops = [
 {
     const timeTotalQuery = db.query("SELECT SUM(playTimeSeconds) as value from Users")
     stats.time.totalSeconds = timeTotalQuery.get().value
+
+    const topTimeQuery = db.query<Top, []>(`
+        SELECT intId AS id, chatName AS title, playTimeSeconds AS total
+        FROM Users
+        ORDER BY playTimeSeconds DESC
+        LIMIT 20`)
+    const topTimes = topTimeQuery.all()
+    const times = topTimes.map(chatter => chatter.total)
+
+    stats.time.topRange = Math.max(...times) - Math.min(...times)
+    stats.time.top = topTimes
 }
 
 console.log(JSON.stringify(stats))

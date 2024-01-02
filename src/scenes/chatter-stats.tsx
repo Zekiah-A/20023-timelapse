@@ -1,11 +1,9 @@
-import {makeScene2D, Img, Txt, Rect, Layout, View2D} from '@motion-canvas/2d';
-import {createRef, waitFor, all, Vector2, slideTransition, Direction, useRandom, tween, debug} from '@motion-canvas/core';
-import {linear} from "@motion-canvas/core/lib/tweening";
+import {Txt, makeScene2D} from '@motion-canvas/2d';
+import {createRef, waitFor, all, slideTransition, Direction} from '@motion-canvas/core';
 
 import {stats} from '../project'
 import {WhiteLabel} from '../styles';
-import { barChart, listChart } from '../controls';
-import {lerpHex} from '../utils';
+import {listChart} from '../controls';
 
 export default makeScene2D(function* (view) {
     const titleRef = createRef<Txt>()
@@ -25,3 +23,4 @@ export default makeScene2D(function* (view) {
     yield* listChart(view, stats.chatters.topRange, stats.chatters.top, 900, -860, -300, 1600)
     yield* waitFor(2)
 });
+ 

@@ -25,6 +25,8 @@ export type Stats = {
         top: Top[],
     },
     time: {
-        totalSeconds:number
+        totalSeconds:number,
+        topRange: number,
+        top: Top[]
     }
 }

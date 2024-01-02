@@ -1,8 +1,10 @@
-import { View2D, Rect, Txt } from "@motion-canvas/2d"
-import { useRandom, createRef, Vector2, all, linear, tween } from "@motion-canvas/core"
-import { WhiteLabel } from "./styles"
-import { Stop, Top } from "../private/stats"
-import { lerpHex } from "./utils"
+import {View2D, Rect, Txt} from "@motion-canvas/2d"
+import {useRandom, createRef, Vector2, all, linear, tween, waitFor} from "@motion-canvas/core"
+import {easeInOutQuad, easeOutExpo, map} from "@motion-canvas/core/lib/tweening";
+
+import {WhiteLabel} from "./styles"
+import {Stop, Top} from "../private/stats"
+import {formatTimeShort, lerpHex} from "./utils"
 
 export function* barChart(view:View2D, total:number, stops:Stop[], left=0, top=0, maxWidth=-1, maxHeight=100, minHeight=-1, animTime=5, titleCount=false) {
     maxWidth = maxWidth === -1 ? 1920 - left : maxWidth
@@ -59,28 +61,50 @@ export function* barChart(view:View2D, total:number, stops:Stop[], left=0, top=0
     }
 }
 
-export function* listChart(view:View2D, topRange: number, top:Top[], columnWidth:number, statsX:number, statsY:number, statsHeight:number) {
+interface ListValueRenderer {
+    (
+        view: View2D,
+        topRange: number,
+        topItem: Top,
+        topCount: number,
+        i: number,
+        lineX: number,
+        lineY: number
+    ): Generator
+}
+
+export const listChartBarChart: ListValueRenderer = function* (view: View2D, topRange: number, topItem: Top, topCount: number, i: number, lineX: number, lineY: number): Generator<any, void, any> {
+    const colour = lerpHex(lerpHex("#FFD700", "#C0C0C0", Math.min(i / (topCount / 2), 1)),
+    "#cd7f32", Math.max((i - (topCount / 2)) / topCount, 0) * 2)
+    const stops = [{id:"", title: "%c", label: "", value: topItem.total, colour: colour}]
+    const width = 400 * (topItem.total / topRange)
+    yield* barChart(view, topItem.total, stops, lineX + 360, lineY, width, 50, 50, 3, true)
+}
+
+export const listChartTimeS: ListValueRenderer = function* (view: View2D, topRange: number, topItem: Top, topCount: number, i: number, lineX: number, lineY: number): Generator<any, void, any> {
+    const valueRef = createRef<Txt>()
+    view.add(<Txt ref={valueRef} x={lineX + 540} y={lineY} fill={WhiteLabel.fill}>0</Txt>)
+    yield* tween(3, value => {
+        const timeSecs = Math.floor(map(0, topItem.total, easeOutExpo(value)))
+        valueRef().text(formatTimeShort(timeSecs))
+    })
+}
+
+export function* listChart(view:View2D, topRange: number, top:Top[], columnWidth:number, statsX:number, statsY:number, statsHeight:number, valueRenderer: ListValueRenderer = listChartBarChart) {
     const rowsMax = 10
     for (let i = 0; i < top.length; i++) {
-        const chatter = top[i]
         const lineY = (i % rowsMax) / top.length * statsHeight + statsY
         const lineX = Math.floor(i / rowsMax) * columnWidth + statsX
         const userRef = createRef<Txt>()
-        view.add(<Txt ref={userRef} fill={WhiteLabel.fill} x={0} y={0} opacity={0} offsetX={-1}>{chatter.title || "#" + chatter.id}</Txt>)
+        view.add(<Txt ref={userRef} fill={WhiteLabel.fill} x={0} y={0} opacity={0} offsetX={-1}>{top[i].title || "#" + top[i].id}</Txt>)
         const moveT = 0.5
         yield* all(
             userRef().x(lineX, moveT),
             userRef().y(lineY, moveT),
             userRef().opacity(1, moveT)
         )
-    
-        const colour = lerpHex(lerpHex("#FFD700", "#C0C0C0", Math.min(i / (top.length / 2), 1)),
-            "#cd7f32", Math.max((i - (top.length / 2)) / top.length, 0) * 2)
-        const stops = [{id:"", title: "%c", label: "", value: chatter.total, colour: colour}]
-        const width = 400 * (chatter.total / topRange)
-        yield all(
-            barChart(view, chatter.total, stops, lineX + 360, lineY, width, 50, 50, 3, true)
-        )
+        yield valueRenderer(view, topRange, top[i], top.length, i, lineX, lineY)
     }
+    yield* waitFor(3) // ValueRenderers should be 3s staggered
 }
 

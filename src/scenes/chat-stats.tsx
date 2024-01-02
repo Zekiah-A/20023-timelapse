@@ -1,6 +1,5 @@
-import {makeScene2D, Img, Txt, Rect, Layout, View2D} from '@motion-canvas/2d';
-import {createRef, waitFor, all, Vector2, slideTransition, Direction, useRandom, tween, debug} from '@motion-canvas/core';
-import {linear} from "@motion-canvas/core/lib/tweening";
+import {makeScene2D, Txt} from '@motion-canvas/2d';
+import {createRef, waitFor, all, slideTransition, Direction, tween} from '@motion-canvas/core';
 
 import {stats} from '../project'
 import {WhiteLabel} from '../styles';
@@ -14,7 +13,7 @@ export default makeScene2D(function* (view) {
     
     // live
     const liveChatRef = createRef<Txt>()
-    view.add(<Txt ref={liveChatRef} fill={WhiteLabel.fill} x={0} y={0} offsetX={-1}>Live chat messages: 0</Txt>)
+    view.add(<Txt ref={liveChatRef} fill={WhiteLabel.fill} x={0} y={0} zIndex={1} offsetX={-1}>Live chat messages: 0</Txt>)
     const liveChatT = 1
     const liveChatBarT = 4
     yield* all(
@@ -30,7 +29,7 @@ export default makeScene2D(function* (view) {
     )
     // canv
     const canvasChatRef = createRef<Txt>()
-    view.add(<Txt ref={canvasChatRef} fill={WhiteLabel.fill} x={0} y={0} offsetX={-1} opacity={0}>Canvas chat messages: 0</Txt>)
+    view.add(<Txt ref={canvasChatRef} fill={WhiteLabel.fill} x={0} y={0} offsetX={-1} zIndex={1} opacity={0}>Canvas chat messages: 0</Txt>)
     yield* all(
         canvasChatRef().x(-900, liveChatT),
         canvasChatRef().opacity(1, liveChatT)

@@ -46,14 +46,14 @@ export default makeScene2D(function* (view) {
         </Layout>
         <Layout>
             <CodeBlock ref={txtRef} fill={"white"} {...WhiteLabel} y={50} scale={0.6} opacity={0} language="cs" code={"rplace.live official 2023 timelapse"}/>
-            <Img ref={rplaceRef} src={rplacePng} scale={8} rotation={90} />
+            <Img ref={rplaceRef} src={rplacePng} scale={8.1} rotation={90} />
         </Layout>
     </Layout>)
     
     const shrinkT = 1
     yield* all(
-        rplaceRef().scale(8, shrinkT).to(0.1, shrinkT),
-        rplaceRef().absoluteRotation(90, shrinkT).to(0, shrinkT),
+        rplaceRef().scale(0.1, shrinkT),
+        rplaceRef().absoluteRotation(0, shrinkT),
     )
 
     const textT = 0.5
